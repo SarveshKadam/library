@@ -3,6 +3,7 @@ const app = express()
 const expressLayouts =  require('express-ejs-layouts')
 const indexrouter = require('./routes/index')
 const authorrouter = require('./routes/authors')
+const bookrouter = require('./routes/books')
 const dotenv = require('dotenv').config({path : "./config.env"})
 const bodyParser = require('body-parser')
 
@@ -25,6 +26,7 @@ db.once('open',()=>{console.log("db is connected")})
 
 app.use('/',indexrouter)
 app.use('/authors',authorrouter)
+app.use('/books',bookrouter)
 
 
 app.listen(process.env.PORT || 3000)
