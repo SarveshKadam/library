@@ -1,18 +1,8 @@
 const router = require('express').Router()
 const Author = require('../models/author')
-const fs = require('fs')
-const path =require('path')
 const Book = require('../models/book')
-const uploadPath = path.join('public',Book.coverImageBasePath)
-const multer = require('multer')
 const imageMimeTypes = ['image/jpeg','image/png','image/gif']
-const upload = multer({
-    dest :uploadPath,
-    fileFilter : (req,file,callback)=>{
-        //callback(error,condition)
-        callback(null, imageMimeTypes.includes(file.mimetype))
-    }
-})
+
 
 //get all books
 
@@ -46,30 +36,26 @@ router.get('/new',async(req,res)=>{
 
 //new book creation
 
-router.post('/',upload.single('cover'),async (req,res)=>{
-    const fileName = req.file != null ? req.file.filename : null
+router.post('/',async (req,res)=>{
     const book = new Book({
         title : req.body.title,
         description : req.body.description,
         publishDate : new Date(req.body.publishDate),
         pageCount : req.body.pageCount,
-        coverImageName : fileName,
         author : req.body.author
     })
+    if(req.body.cover){
+    saveCover(book, req.body.cover)
+    }
     try {
         const newBook = await book.save()
         res.redirect('books')
     } catch {
-        removeBookCover(book.coverImageName)
         renderNewPage(res,book, true)
     }
 })
 
-function removeBookCover(fileName){
-    fs.unlink(path.join(uploadPath,fileName), err =>{
-       if(err) console.error(err);
-    })
-}
+
 
 async function renderNewPage(res, book , hasError = false){
     
@@ -83,6 +69,18 @@ async function renderNewPage(res, book , hasError = false){
         res.render('books/new',params)
     } catch (error) {
         res.redirect('/books')
+    }
+}
+
+function saveCover(book,coverEncoded){
+    let cover
+    if(coverEncoded === null) return
+    if(coverEncoded){
+        cover = JSON.parse(coverEncoded)
+    }
+    if(cover && imageMimeTypes.includes(cover.type)){
+        book.coverImage = new Buffer.from(cover.data,'base64')
+        book.coverImageType = cover.type
     }
 }
 
