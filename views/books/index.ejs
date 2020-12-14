@@ -19,6 +19,8 @@ Books Index Page
 <br>
 <div>
     <% books.forEach( book =>{%> 
+        <a href="/books/<%= book.id %>">
         <span><img height="150" width="100" src="<%= book.coverImagePath %>" alt=""></span>
+        </a>
     <%  }) %> 
 </div>
